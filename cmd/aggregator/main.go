@@ -6,10 +6,11 @@ import (
     "os"
     "os/signal"
     "syscall"
-    "time"
 
     "github.com/AndoNorth/go-quant/internal/datafeed"
+    "github.com/AndoNorth/go-quant/internal/engine"
     "github.com/AndoNorth/go-quant/internal/models"
+    "github.com/AndoNorth/go-quant/internal/strategy"
 )
 
 func main() {
@@ -28,13 +29,19 @@ func main() {
     feed := datafeed.NewBinanceFeed([]string{"BTCUSDT"})
     feed.Start(ctx, out)
 
+    strat := strategy.NewMeanReversion(5, 20)
+    sim := engine.NewTradeSimulator()
+
     for {
         select {
         case <-ctx.Done():
+            fmt.Printf("\nFinal Realized PnL: %.2f\n", sim.GetPnL())
             return
         case tick := <-out:
-            fmt.Printf("[%s] %.2f @ %.3f | %s\n",
-                tick.Symbol, tick.Price, tick.Volume, tick.Timestamp.Format(time.RFC3339))
+            signal := strat.OnTick(tick)
+            if signal != "" {
+                sim.ExecuteTrade(tick.Symbol, signal, tick.Price, 0.01)
+            }
         }
     }
 }
