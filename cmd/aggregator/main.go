@@ -10,6 +10,7 @@ import (
     "github.com/AndoNorth/go-quant/internal/datafeed"
     "github.com/AndoNorth/go-quant/internal/engine"
     "github.com/AndoNorth/go-quant/internal/models"
+    "github.com/AndoNorth/go-quant/internal/storage"
     "github.com/AndoNorth/go-quant/internal/strategy"
 )
 
@@ -29,8 +30,9 @@ func main() {
     feed := datafeed.NewBinanceFeed([]string{"BTCUSDT"})
     feed.Start(ctx, out)
 
+    store := storage.NewSQLiteStore("trades.db")
     strat := strategy.NewMeanReversion(5, 20)
-    sim := engine.NewTradeSimulator()
+    sim := engine.NewTradeSimulator(store)
 
     for {
         select {

@@ -1,6 +1,7 @@
 # go-quant
 
 ## Project Overview
+```
 go-quant/
 ├── cmd/
 │   ├── aggregator/         # Entry point for market data aggregator
@@ -60,3 +61,4 @@ go-quant/
 ├── go.mod
 ├── go.sum
 └── README.md
+```

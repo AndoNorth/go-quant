@@ -6,29 +6,30 @@ import (
     "time"
 
     "github.com/AndoNorth/go-quant/internal/models"
+    "github.com/AndoNorth/go-quant/internal/storage"
 )
 
 type TradeSimulator struct {
     mu          sync.Mutex
-    position    float64  // positive = long, negative = short
+    position    float64
     entryPrice  float64
     realizedPnL float64
     trades      []models.Trade
+    store       *storage.SQLiteStore
 }
 
-func NewTradeSimulator() *TradeSimulator {
+func NewTradeSimulator(store *storage.SQLiteStore) *TradeSimulator {
     return &TradeSimulator{
         trades: make([]models.Trade, 0),
+        store:  store,
     }
 }
 
-// ExecuteTrade simulates a buy/sell and updates PnL.
 func (t *TradeSimulator) ExecuteTrade(symbol, side string, price float64, qty float64) {
     t.mu.Lock()
     defer t.mu.Unlock()
 
     var pnl float64
-
     switch side {
     case "BUY":
         // closing a short
@@ -66,6 +67,7 @@ func (t *TradeSimulator) ExecuteTrade(symbol, side string, price float64, qty fl
         RealizedPnL: t.realizedPnL,
     }
     t.trades = append(t.trades, trade)
+    _ = t.store.SaveTrade(trade) // save to DB
 
     fmt.Printf("Executed %s %.4f %s @ %.2f | RealizedPnL: %.2f\n",
         side, qty, symbol, price, t.realizedPnL)
