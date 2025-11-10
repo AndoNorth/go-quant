@@ -43,6 +43,9 @@ func main() {
             signal := strat.OnTick(tick)
             if signal != "" {
                 sim.ExecuteTrade(tick.Symbol, signal, tick.Price, 0.01)
+            } else {
+                // even if no trade, update unrealized PnL
+                sim.UpdateUnrealizedPnL(tick.Price)
             }
         }
     }
